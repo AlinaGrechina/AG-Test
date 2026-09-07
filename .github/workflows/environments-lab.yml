@@ -1,0 +1,117 @@
+name: Environments Lab
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  workflow_dispatch:
+
+env:
+  APP_NAME: github-environments-lab
+  GLOBAL_MESSAGE: I am a workflow-level variable
+  DEPLOY_VERSION: "1.0.0"
+
+jobs:
+  inspect:
+    name: Inspect common context
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show common values
+        run: |
+          echo "APP_NAME=$APP_NAME"
+          echo "GLOBAL_MESSAGE=$GLOBAL_MESSAGE"
+          echo "DEPLOY_VERSION=$DEPLOY_VERSION"
+          echo "REPOSITORY_OWNER_VAR=${{ vars.REPOSITORY_OWNER_VAR }}"
+          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "GITHUB_REF_NAME=$GITHUB_REF_NAME"
+          echo "No environment is attached to this job"
+
+  deploy-development:
+    name: Fake deploy to development
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://development.example.test
+    env:
+      ENV_MESSAGE: Hello from DEVELOPMENT
+      API_URL: https://dev-api.example.test
+    steps:
+      - name: Empty deployment
+        run: |
+          echo "Fake deployment only - no server is changed"
+          echo "ENVIRONMENT=development"
+          echo "APP_NAME=$APP_NAME"
+          echo "DEPLOY_VERSION=$DEPLOY_VERSION"
+          echo "REPOSITORY_OWNER_VAR=${{ vars.REPOSITORY_OWNER_VAR }}"
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}"
+          echo "ENV_MESSAGE=$ENV_MESSAGE"
+          echo "API_URL=$API_URL"
+
+  deploy-staging:
+    name: Fake deploy to staging
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-development
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.example.test
+    env:
+      ENV_MESSAGE: Hello from STAGING
+      API_URL: https://staging-api.example.test
+    steps:
+      - name: Empty deployment
+        run: |
+          echo "Fake deployment only - no server is changed"
+          echo "ENVIRONMENT=staging"
+          echo "APP_NAME=$APP_NAME"
+          echo "DEPLOY_VERSION=$DEPLOY_VERSION"
+          echo "REPOSITORY_OWNER_VAR=${{ vars.REPOSITORY_OWNER_VAR }}"
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}"
+          echo "ENV_MESSAGE=$ENV_MESSAGE"
+          echo "API_URL=$API_URL"
+
+  deploy-production:
+    name: Fake deploy to production
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://production.example.test
+    env:
+      ENV_MESSAGE: Hello from PRODUCTION
+      API_URL: https://api.example.test
+    steps:
+      - name: Empty deployment
+        run: |
+          echo "Fake deployment only - no server is changed"
+          echo "ENVIRONMENT=production"
+          echo "APP_NAME=$APP_NAME"
+          echo "DEPLOY_VERSION=$DEPLOY_VERSION"
+          echo "REPOSITORY_OWNER_VAR=${{ vars.REPOSITORY_OWNER_VAR }}"
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}"
+          echo "ENV_MESSAGE=$ENV_MESSAGE"
+          echo "API_URL=$API_URL"
+
+  review:
+    name: Fake deploy review environment
+    if: startsWith(github.ref, 'refs/heads/feature/')
+    runs-on: ubuntu-latest
+    environment:
+      name: review-${{ github.ref_name }}
+      url: https://review.example.test
+    env:
+      ENV_MESSAGE: Hello from REVIEW
+      API_URL: https://review-api.example.test
+    steps:
+      - name: Empty review deployment
+        run: |
+          echo "Fake deployment only - no server is changed"
+          echo "ENVIRONMENT=review-$GITHUB_REF_NAME"
+          echo "BRANCH=$GITHUB_REF_NAME"
+          echo "REPOSITORY_OWNER_VAR=${{ vars.REPOSITORY_OWNER_VAR }}"
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}"
+          echo "ENV_MESSAGE=$ENV_MESSAGE"
+          echo "API_URL=$API_URL"
